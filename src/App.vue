@@ -1,60 +1,139 @@
 <template>
-  <div id="app">
-    <img src="./assets/logo.png">
-    <h1>{{ msg }}</h1>
-    <h2>Essential Links</h2>
-    <ul>
-      <li><a href="https://vuejs.org" target="_blank">Core Docs</a></li>
-      <li><a href="https://forum.vuejs.org" target="_blank">Forum</a></li>
-      <li><a href="https://chat.vuejs.org" target="_blank">Community Chat</a></li>
-      <li><a href="https://twitter.com/vuejs" target="_blank">Twitter</a></li>
-    </ul>
-    <h2>Ecosystem</h2>
-    <ul>
-      <li><a href="http://router.vuejs.org/" target="_blank">vue-router</a></li>
-      <li><a href="http://vuex.vuejs.org/" target="_blank">vuex</a></li>
-      <li><a href="http://vue-loader.vuejs.org/" target="_blank">vue-loader</a></li>
-      <li><a href="https://github.com/vuejs/awesome-vue" target="_blank">awesome-vue</a></li>
-    </ul>
-  </div>
+  <div id="demo">
+    <form id="search">
+      Total revenue {{total}}<br>
+      From <datepicker v-model="from" name="from"></datepicker>
+      To <datepicker v-model="to" name="to"></datepicker>
+      <input name="query" type="button" value="Search" v-on:click="callData">
+    </form>
+    <table>
+      <thead>
+        <tr>
+          <th v-for="key in gridColumns">
+            {{ key }}
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="entry in gridData">
+          <td v-for="key in gridColumns">
+            {{entry[key]}}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+</div>
 </template>
 
 <script>
+ import axios from "axios"
+ import Datepicker from 'vuejs-datepicker';
+
 export default {
-  name: 'app',
-  data () {
-    return {
-      msg: 'Welcome to Your Vue.js App'
+  components: {
+        Datepicker
+  },
+  props: {
+    data: Array,
+    columns: Array,
+    filterKey: String
+  },
+  data:()=>{
+    return{
+      sortKey: '',
+      searchQuery: '',
+      from:new Date("2017-03-01"),
+      to:new Date("2017-03-01"),
+      total:0,
+      gridColumns: ['title', 'revenue'],
+      gridData: [
+    
+      ]
     }
+  },
+  computed: {},
+  filters: {
+  },
+  methods: {
+    callData: function(){
+      var thet = this
+
+      axios.get('http://localhost:3000/sales?from='+this.from.toISOString().substring(0, 10)+'&to='+this.to.toISOString().substring(0, 10)).then(
+        function (res) {
+          thet.gridData = res.data.good 
+          thet.total = res.data.total_revenue
+        }).catch(
+        function(res){
+          alert(res)
+        }
+      )
+    }
+  },
+  created:function(){
+    this.callData();
   }
 }
 </script>
 
 <style>
-#app {
-  font-family: 'Avenir', Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
+body {
+  font-family: Helvetica Neue, Arial, sans-serif;
+  font-size: 14px;
+  color: #444;
 }
 
-h1, h2 {
-  font-weight: normal;
+table {
+  border: 2px solid #42b983;
+  border-radius: 3px;
+  background-color: #fff;
 }
 
-ul {
-  list-style-type: none;
-  padding: 0;
+th {
+  background-color: #42b983;
+  color: rgba(255,255,255,0.66);
+  cursor: pointer;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 
-li {
+td {
+  background-color: #f9f9f9;
+}
+
+th, td {
+  min-width: 120px;
+  padding: 10px 20px;
+}
+
+th.active {
+  color: #fff;
+}
+
+th.active .arrow {
+  opacity: 1;
+}
+
+.arrow {
   display: inline-block;
-  margin: 0 10px;
+  vertical-align: middle;
+  width: 0;
+  height: 0;
+  margin-left: 5px;
+  opacity: 0.66;
 }
 
-a {
-  color: #42b983;
+.arrow.asc {
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-bottom: 4px solid #fff;
 }
+
+.arrow.dsc {
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 4px solid #fff;
+}
+
 </style>
